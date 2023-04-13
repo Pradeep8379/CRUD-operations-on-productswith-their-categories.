@@ -1,5 +1,6 @@
 const userModel = require("../models/userModel");
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken")
 
 const createUser = async function (req, res) {
   try {
@@ -8,7 +9,7 @@ const createUser = async function (req, res) {
     //______________________encrypted password_______________________//
 
     const salt = await bcrypt.genSalt(10);
-    const createPwd = await bcrypt.hash(password, salt);
+    const createPwd = await bcrypt.hash(requestBody.password, salt);
     requestBody.password = createPwd;
 
     let uniqueEmail = await userModel.findOne({ email: requestBody.email });

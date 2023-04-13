@@ -3,6 +3,15 @@ const categoryModel = require("../models/categoryModel");
 const createCategory = async function (req, res) {
     try {
         let requestBody = req.body;
+
+        let existingCategory = await categoryModel.findOne({ name: requestBody.name });
+        // console.log(existingCategory);
+        if (existingCategory) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Category already exists" });
+        }
+        requestBody.isDeleted = false;
         let Category = await categoryModel.create(requestBody);
         return res
             .status(201)
@@ -20,7 +29,7 @@ const getCategories = async function (req, res) {
             name
         } = requestBody;
 
-        if (req.userId != userId) {
+        if (req.UserId != userId) {
             return res
                 .status(403)
                 .send({ status: false, message: "unauthorised user" });
@@ -28,9 +37,8 @@ const getCategories = async function (req, res) {
 
         let categories = await categoryModel
             .find({
-                name:name,
                 isDeleted: false,
-              })
+            })
 
 
         if (categories.length == 0) {
@@ -51,18 +59,18 @@ const deleteCategory = async function (req, res) {
     try {
         let requestBody = req.body;
         let userId = req.params.userId;
-        let {
-            name
-        } = requestBody;
+        // let {
+        //     name
+        // } = requestBody;
 
-        if (req.userId != userId) {
+        if (req.UserId != userId) {
             return res
                 .status(403)
                 .send({ status: false, message: "unauthorised user" });
         }
+        console.log(req.body);
 
-        let category = await categoryModel
-            .findOne({name,isDeleted: false})
+        let category = await categoryModel.findOne({ name: requestBody.name, isDeleted: false })
 
 
         if (!category) {
@@ -72,9 +80,9 @@ const deleteCategory = async function (req, res) {
         }
 
         await categoryModel.findOneAndUpdate(
-            { name: name },
-            { $set: { isDeleted: true} }
-          );
+            { name: requestBody.name },
+            { $set: { isDeleted: true } }
+        );
 
         res
             .status(200)

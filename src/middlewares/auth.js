@@ -16,6 +16,7 @@ const authenticate = function (req, res, next) {
                     return res.status(400).send({ status: false, message: err.message })
                 }
                 else {
+                    // console.log(data);
                     req.UserId = data.userId
                     next()
 

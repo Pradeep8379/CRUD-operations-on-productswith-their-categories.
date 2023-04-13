@@ -24,8 +24,8 @@ router.delete('/category/:userId',middleWares.authenticate, categoryController.d
 
 router.post("/products/:userId",middleWares.authenticate,productController.createProduct)
 router.get('/products/:userId',middleWares.authenticate,productController.getAllProducts)
-router.get('/productsByCategory/:userId',middleWares.authenticate, productController.getProductsByCategory)
-router.get('/singleProduct/:userId',middleWares.authenticate, productController.getSingleProduct)
+router.get('/productsByCategory/:name/:userId',middleWares.authenticate, productController.getProductsByCategory)
+router.get('/singleProduct/:name/:userId',middleWares.authenticate, productController.getSingleProduct)
 router.put('/products/:userId',middleWares.authenticate,productController.updateProduct)
 router.delete('/products/:userId',middleWares.authenticate, productController.deleteProduct)
 

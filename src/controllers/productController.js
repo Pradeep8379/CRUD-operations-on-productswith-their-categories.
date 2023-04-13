@@ -1,11 +1,32 @@
+
 const productModel = require("../models/productModel");
 const categoryModel = require("../models/categoryModel");
 
 const createProduct = async function (req, res) {
   try {
     let requestBody = req.body;
+    let categoryName = requestBody.categoryName;
+    let category = await categoryModel.findOne({ name: categoryName });
+
+    if (!category) {
+      return res
+        .status(404)
+        .send({ status: false, message: "No category found" });
+    }
+    let checkProduct = await productModel.findOne({ name: requestBody.name });
+
+    if (checkProduct) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Product already exists" });
+    }
+
+    let categoryId = category._id;
+    delete requestBody.categoryName;
+    requestBody.category = categoryId;
 
     let Product = await productModel.create(requestBody);
+
     return res
       .status(201)
       .send({ status: true, message: "Success", data: Product });
@@ -16,27 +37,27 @@ const createProduct = async function (req, res) {
 
 const getProductsByCategory = async function (req, res) {
   try {
-    let requestBody = req.body;
+    // let requestBody = req.body;
+    let name = req.params.name
     let userId = req.params.userId;
-    let {
-      name,
-      category
-    } = requestBody;
+    // let {
+
+    //   name
+    // } = requestBody;
 
 
-    if (req.userId != userId) {
+    if (req.UserId != userId) {
       return res
         .status(403)
         .send({ status: false, message: "unauthorised user" });
     }
 
-    let checkCategory = await categoryModel
-      .findOne({
-        name: category,
-        isDeleted: false,
-      })
-
-    categoryId = checkCategory._id;
+    let checkCategory = await categoryModel.findOne({
+      name,
+      isDeleted: false,
+    })
+    // console.log(req.params, checkCategory);
+    let categoryId = checkCategory._id;
 
     let products = await productModel.find({ category: categoryId, isDeleted: false })
 
@@ -50,6 +71,7 @@ const getProductsByCategory = async function (req, res) {
       .status(200)
       .send({ status: true, message: "Success", data: products });
   } catch (error) {
+    // console.log(error.message);
     res.status(500).send({ status: false, error: error.message });
   }
 };
@@ -59,7 +81,7 @@ const getAllProducts = async function (req, res) {
 
     let userId = req.params.userId;
 
-    if (req.userId != userId) {
+    if (req.UserId != userId) {
       return res
         .status(403)
         .send({ status: false, message: "unauthorised user" });
@@ -88,10 +110,10 @@ const getSingleProduct = async function (req, res) {
   try {
 
     let userId = req.params.userId;
-    let requestBody = req.body;
-    let { name } = requestBody
+    let name = req.params.name;
 
-    if (req.userId != userId) {
+
+    if (req.UserId != userId) {
       return res
         .status(403)
         .send({ status: false, message: "unauthorised user" });
@@ -126,7 +148,7 @@ const deleteProduct = async function (req, res) {
       name
     } = requestBody;
 
-    if (req.userId != userId) {
+    if (req.UserId != userId) {
       return res
         .status(403)
         .send({ status: false, message: "unauthorised user" });
@@ -159,10 +181,16 @@ const updateProduct = async function (req, res) {
   try {
 
     let requestBody = req.body;
+    let userId = req.params.userId;
     let {
       name, category, description, price, quantity
     } = requestBody;
-
+    if (req.UserId != userId) {
+      return res
+        .status(403)
+        .send({ status: false, message: "unauthorised user" });
+    }
+// console.log(requestBody);
     let findProduct = await productModel.findOne({
       name: name,
       isDeleted: false,
@@ -172,8 +200,17 @@ const updateProduct = async function (req, res) {
         .status(404)
         .send({ status: false, message: " product not found" });
     }
-
-    let updatingData = await productModel.findByIdAndUpdate(
+    let newCategory = await categoryModel.findOne({
+      name: category,
+      isDeleted: false,
+    });
+    if (!newCategory) {
+      return res
+        .status(404)
+        .send({ status: false, message: "category not available" });
+    }
+    requestBody.category = newCategory._id;
+    let updatingData = await productModel.findOneAndUpdate(
       { name: name },
       { $set: requestBody },
       { new: true }
